@@ -1,0 +1,23 @@
+CHIP BG_U125 GAL16V8D
+
+; Recreation of Battle Garegga's U125 GAL device
+; 2018 Michael Moffitt
+; mikejmoffitt@gmail.com
+
+clk d1 d2 d3 d4 d5 d6 d7 d8 gnd
+/oe q8 q7 q6 q5 q4 q3 q2 q1 vcc
+                              
+EQUATIONS
+
+; These outputs are not used, and probing the PCB shows infinite
+; resistance to ground. They are N/C.
+q1 = /d7
+q2 = /d7
+q3 = /d7
+q4 = /d7
+q5 = /d7
+
+; D3 acts like an output enable; strange, since /OE exists already.
+q6 = d3*d2*/d5*d6
+q7 = d3*d1*/d5*d6
+q8 = d3*clk*/d5*d6 + d3*/clk*d5*/d6
