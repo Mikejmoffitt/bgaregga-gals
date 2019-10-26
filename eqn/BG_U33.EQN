@@ -3,7 +3,8 @@ CHIP BG_U33 GAL16V8D
 ; Recreation of Battle Garegga's U33 GAL device
 ; Verified using logic analyzer compared to original U33 chip
 ; Tested on hardware.
-; 2018 Michael Moffitt
+; 2019/10/25 update: Fixed odd scroll offsets when in non-flipped configuration. Look how gross Q6 is now.
+; 2019 Michael Moffitt
 ; mikejmoffitt@gmail.com
 
 clk d1 d2 d3 d4 d5 d6 d7 d8 gnd
@@ -22,10 +23,10 @@ EQUATIONS
 ; I suspect this is due to a bus conflict with the text RAM address.
 q1 := q1*d3 | q1*d4 | q1*/d5 | q1*/d6 | q1*/d7 | q1*/d8 + vbl_end;
 
-; Raster signal event listing
-; 1) q3 low			CONFIRMED q3*/q6*q7 + q3*/q7*q6;
+; Raster signal event listing for even alignment of frames
+; 1) q3 low			    CONFIRMED q3*/q6*q7 + q3*/q7*q6;
 ; 2) q5 high			CONFIRMED /q7*/q6*/q3
-; 3) q4 low			CONFIRMED q4*/q7 + q4*/q6*/q7 + q4*q6*q7 + q4*/q5
+; 3) q4 low			    CONFIRMED q4*/q7 + q4*/q6*/q7 + q4*q6*q7 + q4*/q5
 ; 4) q3 high			CONFIRMED /q4
 ; 5) q2 low, q5 low		CONFIRMED x*q4 + x*/q7 + x*/q3 ; x = q2 or q5
 ; 6) q4 high			CONFIRMED q1*q7*q6*q5*q2 + /q1
@@ -35,8 +36,9 @@ q3 := q1*/d9 + q1*q3*/q6*q7 + q1*q3*/q7*q6 + q1*/q4 + q1*/q2 + /q1
 q4 := q1*q4*/q7 + q1*q4*/q6*/q7 + q1*q4*q6*q7 + q1*q4*/q5 + q1*/d9 + q1*q7*q6*q5*q2 + /q1
 q5 := q1*/q7*/q6*/q3 + q1*q5*q4 + q1*q5*/q7 + q1*q5*/q3
 
-; Division of main clock / 4, reset by D9
-q6 := d9 * /q7 * /q6 + d9 * q7 * q6
+; Division of main clock / 4, reset by D9.
+; When non-flipped, takes /D2 one cycle after q3 goes high...
+q6 := d1*q4*d9*/q7*/q6 + d1*q4*d9*q7*q6 + d1*/q3*/q4*d9*/q7*/q6 + d1*/q3*/q4*d9*q7*q6 + d1*/q4*q3*/d2 + /d1*d9*/q7*/q6 + /d1*d9*q7*q6
 
 ; Division of main clock / 2, reset by D9
 q7 := /d9 + /q7
